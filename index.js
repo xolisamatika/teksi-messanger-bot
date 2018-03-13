@@ -4,18 +4,27 @@ require('dotenv').load();
 const express = require('express');
 const bodyParser = require('body-parser');
 const request = require('request');
+const https = require('https');
+const fs = require('fs');
+
+const sslOptions = {
+  key: fs.readFileSync(process.env.KEY),
+  cert: fs.readFileSync(process.env.CERT)
+};
 
 const app = express().use(bodyParser.json());
 // Sets server port and logs message on success
-app.listen(process.env.PORT || 1337, () => console.log('webhook is listening'));
+//app.listen(process.env.PORT || 1337, () => console.log('webhook is listening'));
+https.createServer(sslOptions, app).listen(process.env.PORT || 1337, () => console.log('webhook is listening'));
 
 const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
 
 // Creates the endpoint for our webhook 
-app.post('/webhook', (req, res) => {
+app.post('/tmb/webhook', (req, res) => {
  
     let body = req.body;
-  
+ 
+ 
     // Checks this is an event from a page subscription
     if (body.object === 'page') {
   
@@ -49,7 +58,7 @@ app.post('/webhook', (req, res) => {
 });
 
 // Adds support for GET requests to our webhook
-app.get('/webhook', (req, res) => {
+app.get('/tmb/webhook', (req, res) => {
 
     // Your verify token. Should be a random string.
     const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
