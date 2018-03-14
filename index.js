@@ -217,9 +217,10 @@ const buildResponse = async (request) => {
         if(request.attachments[0].payload.coordinates){
             const results = await getAddressByCoordinates(request.attachments[0].payload.coordinates);
             console.log(results);
-            if(results.length == 1){
+            const address = results[0];
+            if(address){
                 response = {
-                    "text": `Is this the correct address : ${results[0]}`,
+                    "text": `Is this the correct address : ${address}`,
                     "quick_replies":[{
                             "content_type":"text",
                             "title": "Yes",
@@ -231,7 +232,8 @@ const buildResponse = async (request) => {
                             "payload": "CONFIRM_ADDRESS",
                         }]
                 };
-            } else if (results.length > 1) {
+            }
+            /* else if (results.length > 1) {
                 response = {
                     "text": `Please select the correct address below :`,
                 };
@@ -244,7 +246,8 @@ const buildResponse = async (request) => {
                             "payload": "SELECT_ADDRESS",
                         });
                 });
-            } else if (false) {
+            } */
+            else if (!address) {
                 response = {
                     "text": `Sorry, I can't get you street address from the shared location, Please type in your Street Address`,
                     "quick_replies":[{
