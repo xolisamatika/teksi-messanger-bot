@@ -17,15 +17,15 @@ const googleOptions = {
 
 const geocoder = nodeGeocoder(googleOptions);
 
-// const sslOptions = {
-//   key: fs.readFileSync(process.env.KEY),
-//   cert: fs.readFileSync(process.env.CERT)
-// };
+const sslOptions = {
+  key: fs.readFileSync(process.env.KEY),
+  cert: fs.readFileSync(process.env.CERT)
+};
 
 const app = express().use(bodyParser.json());
 // Sets server port and logs message on success
-// https.createServer(sslOptions, app).listen(process.env.PORT || 1337, () => {
-app.listen(process.env.PORT || 1337, () => {
+https.createServer(sslOptions, app).listen(process.env.PORT || 1337, () => {
+// app.listen(process.env.PORT || 1337, () => {
     console.log('webhook listening....');
     
 });
