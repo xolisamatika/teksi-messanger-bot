@@ -7,7 +7,7 @@ const request = require('request');
 const https = require('https');
 const fs = require('fs');
 const nodeGeocoder = require('node-geocoder');
-
+// const config = require('./config.json');
 const googleOptions = {
   provider: 'google',
   httpAdapter: 'https', // Default
@@ -27,6 +27,8 @@ const app = express().use(bodyParser.json());
 https.createServer(sslOptions, app).listen(process.env.PORT || 1337, () => {
 // app.listen(process.env.PORT || 1337, () => {
     console.log('webhook listening....');
+    console.log(config.QUICK_REPLIES);
+    
 });
 
 const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
@@ -155,11 +157,60 @@ const buildResponse = async (request) => {
     let response;
 
     console.log(request);
+    if (request.quick_reply) {
+        switch (request.quick_reply.payload) {
+            case REQUEST_RIDE:
+                if (request.text == "Yes") {
+                    response = {
+                        "text": `Please share your location:`,
+                        "quick_replies":[{
+                            "content_type":"location"
+                        }]
+                    };
+                } else if (request.text == "No") {
+                    response = {
+                        "message":{
+                            "attachment":{
+                                "type":"template",
+                                "payload":{
+                                    "template_type":"button",
+                                    "text":"What do you want to do next?",
+                                    "buttons":[{
+                                        "type":"web_url",
+                                        "url":"https://www.teksi.co.za",
+                                        "title":"Visit our site"
+                                    },
+                                    {
+                                        "type":"phone_number",
+                                        "title":"Call one of our drivers",
+                                        "payload":"+15105551234"
+                                    }]
+                                }
+                            }
+                        }
+                    };
+                }
+                break;
+        
+            default:
+                break;
+        }
+    } 
     if (request.text) {
         response = await {
-            "text": `Hello, would you like a ride?`
+            "text": `Hello, would you like a ride?`,
+            "quick_replies":[{
+                "content_type":"text",
+                "title":"Yes",
+                "payload": "REQUEST_RIDE"
+            },
+            {
+                "content_type":"text",
+                "title":"No",
+                "payload": "REQUEST_RIDE"
+            }]
         };
-        
+
     } else if (request.attachments) {
         if(request.attachments[0].payload.coordinates){
             const results = await getAddressByCoordinates(request.attachments[0].payload.coordinates);
@@ -219,27 +270,27 @@ const buildResponse = async (request) => {
 //                 }]
 //             };
 //         } else {
-//             response = {
-//                 "message":{
-//                     "attachment":{
-//                         "type":"template",
-//                         "payload":{
-//                             "template_type":"button",
-//                             "text":"What do you want to do next?",
-//                             "buttons":[{
-//                                 "type":"web_url",
-//                                 "url":"https://www.teksi.co.za",
-//                                 "title":"Visit our site"
-//                             },
-//                             {
-//                                 "type":"phone_number",
-//                                 "title":"Call one of our drivers",
-//                                 "payload":"+15105551234"
-//                             }]
-//                         }
-//                     }
-//                 }
-//             };
+            response = {
+                "message":{
+                    "attachment":{
+                        "type":"template",
+                        "payload":{
+                            "template_type":"button",
+                            "text":"What do you want to do next?",
+                            "buttons":[{
+                                "type":"web_url",
+                                "url":"https://www.teksi.co.za",
+                                "title":"Visit our site"
+                            },
+                            {
+                                "type":"phone_number",
+                                "title":"Call one of our drivers",
+                                "payload":"+15105551234"
+                            }]
+                        }
+                    }
+                }
+            };
 //         }
 //     }
 //     }
