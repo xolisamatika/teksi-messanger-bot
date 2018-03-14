@@ -50,7 +50,8 @@ app.post('/webhook', (req, res) => {
         // Get the sender PSID
         let sender_psid = webhook_event.sender.id;
         console.log('Sender PSID: ' + sender_psid);
-
+        await sendAction(sender_psid, "mark_seen");
+        await sendAction(sender_psid, "typing_on");
         // Check if the event is a message or postback and
         // pass the event to the appropriate handler function
         if (webhook_event.message) {
@@ -60,6 +61,7 @@ app.post('/webhook', (req, res) => {
         }
       });
   
+      await sendAction(sender_psid, "typing_off");
       // Returns a '200 OK' response to all requests
       res.status(200).send('EVENT_RECEIVED');
     } else {
@@ -231,6 +233,27 @@ const buildResponse = async (request) => {
         }
     }
     return response;
+}
+
+const sendAction = async (userId, action) => {
+    let response = { 
+        "recipient": {
+        "id": userId
+        },
+        "sender_action": action
+    };
+    await request({
+        "url": "https://graph.facebook.com/v2.6/me/messages",
+        "qs": { "access_token": PAGE_ACCESS_TOKEN },
+        "method": "POST",
+        "json": response
+    }, (err, res, body) => {
+        if (!err) {
+            console.log('action sent!')
+        } else {
+            console.error("Unable to send action:" + err);
+        }
+    });
 }
 
 
