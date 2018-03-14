@@ -42,26 +42,8 @@ app.post('/webhook', (req, res) => {
   
       // Iterates over each entry - there may be multiple if batched
       body.entry.forEach((entry) => {
-        // Gets the message. entry.messaging is an array, but 
-        // will only ever contain one message, so we get index 0
-        let webhook_event = entry.messaging[0];
-        console.log(webhook_event);
-
-        // Get the sender PSID
-        let sender_psid = webhook_event.sender.id;
-        console.log('Sender PSID: ' + sender_psid);
-        await sendAction(sender_psid, "mark_seen");
-        await sendAction(sender_psid, "typing_on");
-        // Check if the event is a message or postback and
-        // pass the event to the appropriate handler function
-        if (webhook_event.message) {
-          handleMessage(sender_psid, webhook_event.message);
-        } else if (webhook_event.postback) {
-          handlePostback(sender_psid, webhook_event.postback);
-        }
+        handleEntry(entry);
       });
-  
-      await sendAction(sender_psid, "typing_off");
       // Returns a '200 OK' response to all requests
       res.status(200).send('EVENT_RECEIVED');
     } else {
@@ -256,6 +238,23 @@ const sendAction = async (userId, action) => {
     });
 }
 
+
+const handleEntry = async (entry) => {
+    let webhook_event = entry.messaging[0];
+    console.log(webhook_event);
+
+    let sender_psid = webhook_event.sender.id;
+    console.log('Sender PSID: ' + sender_psid);
+    await sendAction(sender_psid, "mark_seen");
+    await sendAction(sender_psid, "typing_on");
+
+    if (webhook_event.message) {
+        await handleMessage(sender_psid, webhook_event.message);
+    } else if (webhook_event.postback) {
+        await handlePostback(sender_psid, webhook_event.postback);
+    }
+    await sendAction(sender_psid, "typing_off");
+}
 
 //   /*
 //   if (received_message.attachments) {
