@@ -17,15 +17,15 @@ const googleOptions = {
 
 const geocoder = nodeGeocoder(googleOptions);
 
-const sslOptions = {
-  key: fs.readFileSync(process.env.KEY),
-  cert: fs.readFileSync(process.env.CERT)
-};
+// const sslOptions = {
+//   key: fs.readFileSync(process.env.KEY),
+//   cert: fs.readFileSync(process.env.CERT)
+// };
 
 const app = express().use(bodyParser.json());
 // Sets server port and logs message on success
-https.createServer(sslOptions, app).listen(process.env.PORT || 1337, () => {
-// app.listen(process.env.PORT || 1337, () => {
+// https.createServer(sslOptions, app).listen(process.env.PORT || 1337, () => {
+app.listen(process.env.PORT || 1337, () => {
     console.log('webhook listening....');
     
 });
@@ -128,6 +128,8 @@ const callSendAPI = async (sender_psid, response) => {
 }
 
 const getAddressByCoordinates = async (coordinates) => {
+    console.log(coordinates);
+    
     try {
         const results = await geocoder.geocode(`${coordinates.lat}, ${coordinates.long}`);
         return results.map(result => result.formattedAddress);;
@@ -233,6 +235,7 @@ const buildResponse = async (request) => {
                 response = {
                     "text": `Please select the correct address below :`,
                 };
+                response.quick_replies = [];
                 results.forEach(element => {
                     response.quick_replies.push(
                         {
@@ -255,6 +258,7 @@ const buildResponse = async (request) => {
     }
     return response;
 }
+
 const sendAction = async (userId, action) => {
     let response = { 
         "recipient": {
@@ -276,21 +280,28 @@ const sendAction = async (userId, action) => {
     });
 }
 
-
 const handleEntry = async (entry) => {
+
     let webhook_event = entry.messaging[0];
     console.log(webhook_event);
 
     let sender_psid = webhook_event.sender.id;
     console.log('Sender PSID: ' + sender_psid);
-    await sendAction(sender_psid, "mark_seen");
-    await sendAction(sender_psid, "typing_on");
+    try {
+        await sendAction(sender_psid, "mark_seen");
+        await sendAction(sender_psid, "typing_on");
 
-    if (webhook_event.message) {
-        await handleMessage(sender_psid, webhook_event.message);
-    } else if (webhook_event.postback) {
-        await handlePostback(sender_psid, webhook_event.postback);
+        if (webhook_event.message) {
+            await handleMessage(sender_psid, webhook_event.message);
+        } else if (webhook_event.postback) {
+            await handlePostback(sender_psid, webhook_event.postback);
+        }
+        
+        await sendAction(sender_psid, "typing_off");
+    } catch (error) {
+        await sendAction(sender_psid, "typing_off");
+        console.error(error);
+    } finally {
+        await sendAction(sender_psid, "typing_off");
     }
-    await sendAction(sender_psid, "typing_off");
 }
-
