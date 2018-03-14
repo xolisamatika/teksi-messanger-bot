@@ -27,7 +27,6 @@ const app = express().use(bodyParser.json());
 https.createServer(sslOptions, app).listen(process.env.PORT || 1337, () => {
 // app.listen(process.env.PORT || 1337, () => {
     console.log('webhook listening....');
-    console.log(config.QUICK_REPLIES);
     
 });
 
@@ -270,27 +269,7 @@ const buildResponse = async (request) => {
 //                 }]
 //             };
 //         } else {
-            response = {
-                "message":{
-                    "attachment":{
-                        "type":"template",
-                        "payload":{
-                            "template_type":"button",
-                            "text":"What do you want to do next?",
-                            "buttons":[{
-                                "type":"web_url",
-                                "url":"https://www.teksi.co.za",
-                                "title":"Visit our site"
-                            },
-                            {
-                                "type":"phone_number",
-                                "title":"Call one of our drivers",
-                                "payload":"+15105551234"
-                            }]
-                        }
-                    }
-                }
-            };
+
 //         }
 //     }
 //     }
