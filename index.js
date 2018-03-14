@@ -124,7 +124,7 @@ const callSendAPI = async (sender_psid, response) => {
             console.error("Unable to send message:" + err);
         }
     });
-    console.log(request_body);
+    console.log(JSON.stringify(request_body));
 }
 
 const getAddressByCoordinates = async (coordinates) => {
@@ -145,9 +145,21 @@ const buildResponse = async (request) => {
             case "REQUEST_RIDE":
                 if (request.text == "Yes") {
                     response = {
-                        "text": `Please share your location:`,
+                        "text": `How many are you?`,
                         "quick_replies":[{
-                            "content_type":"location"
+                            "content_type":"text",
+                            "title":"1-2",
+                            "payload": "PASSENGERS"
+                        },
+                        {
+                            "content_type":"text",
+                            "title":"3-5",
+                            "payload": "PASSENGERS"
+                        },
+                        {
+                            "content_type":"text",
+                            "title":"6-7",
+                            "payload": "PASSENGERS"
                         }]
                     };
                 } else if (request.text == "No") {
@@ -172,12 +184,20 @@ const buildResponse = async (request) => {
                      };
                 }
                 break;
+                case "PASSENGERS":
+                    response = {
+                        "text": `Please share your location:`,
+                        "quick_replies":[{
+                            "content_type":"location"
+                        }]
+                    };
+                break;
         
             default:
                 break;
         }
     } else if (request.text) {
-        response = await {
+        response = {
             "text": `Hello, would you like a ride?`,
             "quick_replies":[{
                 "content_type":"text",
@@ -195,28 +215,46 @@ const buildResponse = async (request) => {
         if(request.attachments[0].payload.coordinates){
             const results = await getAddressByCoordinates(request.attachments[0].payload.coordinates);
             console.log(results);
-            let title = `Sorry, I can't get you street address from the shared location, Please type in your Street Address`;
-            let buttons = [];
             if(results.length == 1){
-                title = `Is this the correct address?`;
-                buttons = [
-                    {
-                    "type": "postback",
-                    "title": "Yes!",
-                    "payload": {"street_address_correct": true},
-                    },
-                    {
-                    "type": "postback",
-                    "title": "No!",
-                    "payload": {"street_address_correct": false},
-                    }
-                ];
+                response = {
+                    "text": `Is this the correct address : ${results[0]}`,
+                    "quick_replies":[{
+                            "content_type":"text",
+                            "title": "Yes",
+                            "payload": "CONFIRM_ADDRESS",
+                        },
+                        {
+                            "content_type":"text",
+                            "title": "No",
+                            "payload": "CONFIRM_ADDRESS",
+                        }]
+                };
+            } else if (results.length > 1) {
+                response = {
+                    "text": `Please select the correct address below :`,
+                };
+                results.forEach(element => {
+                    response.quick_replies.push(
+                        {
+                            "content_type":"text",
+                            "title": `${element}`,
+                            "payload": "SELECT_ADDRESS",
+                        });
+                });
+            } else if (false) {
+                response = {
+                    "text": `Sorry, I can't get you street address from the shared location, Please type in your Street Address`,
+                    "quick_replies":[{
+                        "content_type":"text",
+                        "title": "Yes",
+                        "payload": "TYPE_ADDRESS",
+                    }]
+                };
             }
         }
     }
     return response;
 }
-
 const sendAction = async (userId, action) => {
     let response = { 
         "recipient": {
@@ -256,39 +294,3 @@ const handleEntry = async (entry) => {
     await sendAction(sender_psid, "typing_off");
 }
 
-//   /*
-//   if (received_message.attachments) {
-//         response = {
-//             "attachment": {
-//                 "type": "template",
-//                 "payload": {"template_type": "generic"}
-//             }
-//         };
-
-//       if (results.length > 1) {
-//           results.forEach(element => {
-//           title = `Please select the correct address below :`;
-//             buttons.push(
-//               {
-//               "type": "postback",
-//               "title": `${element}`,
-//               "payload": {"street_address": element},
-//               });
-//           });
-//         }
-//         response.elements = {"title": title, "buttons": buttons};
-//       } else if(received_message.attachments[0].payload.need_ride) {
-//         let need_ride = received_message.attachments[0].payload.need_ride;
-//         if (need_ride == "yes") {
-//             response = null;
-//             response = {
-//                 "text": `Please share your location:`,
-//                 "quick_replies":[{
-//                     "content_type":"location"
-//                 }]
-//             };
-//         } else {
-
-//         }
-//     }
-//     }
