@@ -112,8 +112,8 @@ const handlePostback = async (sender_psid, received_postback) => {
     const payload = received_postback.payload;
 
     // Set the response based on the postback payload
-    if (payload === 'yes') {
-        response = { "text": "Thanks!" }
+    if (payload === 'first hand shake') {
+        response = { "text": "Hi there!" }
     } else if (payload === 'no') {
         response = { "text": "Oops, try sending another image." }
     }
