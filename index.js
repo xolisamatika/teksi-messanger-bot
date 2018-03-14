@@ -158,7 +158,7 @@ const buildResponse = async (request) => {
     console.log(request);
     if (request.quick_reply) {
         switch (request.quick_reply.payload) {
-            case REQUEST_RIDE:
+            case "REQUEST_RIDE":
                 if (request.text == "Yes") {
                     response = {
                         "text": `Please share your location:`,
@@ -168,7 +168,6 @@ const buildResponse = async (request) => {
                     };
                 } else if (request.text == "No") {
                     response = {
-                        "message":{
                             "attachment":{
                                 "type":"template",
                                 "payload":{
@@ -176,26 +175,24 @@ const buildResponse = async (request) => {
                                     "text":"What do you want to do next?",
                                     "buttons":[{
                                         "type":"web_url",
-                                        "url":"https://www.teksi.co.za",
+                                        "url":"http://www.teksi.co.za",
                                         "title":"Visit our site"
                                     },
                                     {
                                         "type":"phone_number",
-                                        "title":"Call one of our drivers",
+                                        "title":"Call Us",
                                         "payload":"+15105551234"
                                     }]
                                 }
                             }
-                        }
-                    };
+                     };
                 }
                 break;
         
             default:
                 break;
         }
-    } 
-    if (request.text) {
+    } else if (request.text) {
         response = await {
             "text": `Hello, would you like a ride?`,
             "quick_replies":[{
